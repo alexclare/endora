@@ -48,12 +48,13 @@ listen = anything else
     case "-a" => seeds += Artist(Name -> accum)
     case "-s" => seeds += Song.search(Search.Title -> accum).head
   }
-
   if (seeds.length < 1) {
     Console.println(usage)
     System.exit(-2)
   }
+
   val list = playlist.Dynamic(seeds)
+  list.steer(Variety(0))
   var description = ""
   Console.println(keys)
   while(true) {
@@ -62,11 +63,27 @@ listen = anything else
       Console.println(s.apply(Title) + " - Artist")
       while (description.size == 0) {
         Console.readChar match {
-          case '+'  => fb(FavoriteSong); description = "  Made a favorite"
-          case '-'  => fb(BanSong); description = "  Banned"
+          case '+'  => {
+            fb(FavoriteSong)
+            list.steer(PlaySimilar(5))
+            description = "  Made a favorite"
+          }
+          case '-'  => {
+            fb(BanSong)
+            list.steer(PlaySimilar(-5))
+            description = "  Banned"
+          }
           case 'n'  => fb(SkipSong); description = "  Skipped"
-          case '\'' => fb(FavoriteArtist); description = "  Made the artist a favorite"
-          case ';'  => fb(BanArtist); description = "  Banned the artist"
+          case '\'' => {
+            fb(FavoriteArtist)
+            list.steer(PlaySimilar(1));
+            description = "  Made the artist a favorite"
+          }
+          case ';'  => {
+            fb(BanArtist)
+            list.steer(PlaySimilar(-1))
+            description = "  Banned the artist"
+          }
           case 'q'  => list.delete; System.exit(0)
           case '?'  => Console.println(keys)
           case _    => description = "  Listened"

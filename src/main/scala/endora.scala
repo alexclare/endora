@@ -8,14 +8,16 @@ import s7.sensation.song.{Search, Song, Title}
 object Endora extends App {
   val usage = "java-run-stuff [-s artist seed]* [-a artist seed]*\n  The first 5 artists/songs will be used to generate your station!"
 
-  val keys = """
+  val keys = """Key map:
 help = ?
 favorite song = +
 ban song = -
 skip song = n
 favorite artist = '
 ban artist = ;
-quit = q"""
+quit = q
+listen = anything else
+"""
 
   if (args.length < 2) {
     Console.println(usage)
@@ -40,10 +42,7 @@ quit = q"""
       }
       group = arg
       accum = ""
-    } else {
-      accum += arg
-    }
-    Console.println("" + group + " - " + accum)
+    } else accum += arg
   }
   group match {
     case "-a" => seeds += Artist(Name -> accum)
@@ -69,7 +68,8 @@ quit = q"""
           case '\'' => fb(FavoriteArtist); description = "  Made the artist a favorite"
           case ';'  => fb(BanArtist); description = "  Banned the artist"
           case 'q'  => list.delete; System.exit(0)
-          case _    => Console.println(keys)
+          case '?'  => Console.println(keys)
+          case _    => description = "  Listened"
         }
       }
       Console.println(description)

@@ -1,5 +1,3 @@
-import scala.collection.mutable.ArrayBuffer
-
 import s7.sensation._
 import s7.sensation.playlist._
 import s7.sensation.artist.{Artist, Name}
@@ -40,12 +38,14 @@ listen = anything else
   list.steer(Variety(0))
   var description = ""
   Console.println(keys)
+
+  val reader = System.console.reader
   while(true) {
     try {
       val (s, fb) = list.next
       Console.println(s.apply(Title) + " - Artist")
       while (description.size == 0) {
-        Console.readChar match {
+        reader.read match {
           case '+'  => {
             fb(FavoriteSong)
             list.steer(PlaySimilar(5))
@@ -56,20 +56,27 @@ listen = anything else
             list.steer(PlaySimilar(-5))
             description = "  Banned"
           }
-          case 'n'  => fb(SkipSong); description = "  Skipped"
+          case 'n'  => {
+            fb(SkipSong);
+            description = "  Skipped"
+            list.steer(PlaySimilar(-1));
+          }
           case '\'' => {
             fb(FavoriteArtist)
-            list.steer(PlaySimilar(1));
+            list.steer(PlaySimilar(3));
             description = "  Made the artist a favorite"
           }
           case ';'  => {
             fb(BanArtist)
-            list.steer(PlaySimilar(-1))
+            list.steer(PlaySimilar(-3))
             description = "  Banned the artist"
           }
           case 'q'  => list.delete; System.exit(0)
           case '?'  => Console.println(keys)
-          case _    => description = "  Listened"
+          case _    => {
+            description = "  Listened"
+            list.steer(PlaySimilar(1));
+          }
         }
       }
       Console.println(description)

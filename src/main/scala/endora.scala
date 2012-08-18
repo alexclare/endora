@@ -29,25 +29,8 @@ listen = anything else
     case _ => Console.println(usage); System.exit(-1); ""
   })
 
-  // Not really any error checking for the seeds
-  val seeds = ArrayBuffer.empty[PlaylistSeed]
-  var group = ""
-  var accum = ""
-  for (arg <- args) {
-    if (arg == "-s" || arg == "-a") {
-      group match {
-        case "-a" => seeds += Artist(Name -> accum)
-        case "-s" => seeds += Song.search(Search.Title -> accum).head
-        case _    =>
-      }
-      group = arg
-      accum = ""
-    } else accum += arg
-  }
-  group match {
-    case "-a" => seeds += Artist(Name -> accum)
-    case "-s" => seeds += Song.search(Search.Title -> accum).head
-  }
+  // Not really any error checking for command-line parsing in general
+  val seeds = buildSeeds(args)
   if (seeds.length < 1) {
     Console.println(usage)
     System.exit(-2)
@@ -96,5 +79,15 @@ listen = anything else
       case ex: NoSuchElementException =>
         list.restart(seeds)
     }
+  }
+
+  def buildSeeds(arr: Array[String]): List[PlaylistSeed] = {
+    val cond = (x:String) => x != "-a" && x != "-s"
+    val (cur, next) = arr.tail.span(cond)
+    (arr.head match {
+      case "-a" => Artist(Name -> cur.mkString(" "))
+      case _ => Song.search(Search.Title -> cur.mkString(" ")).head
+    }) :: (if (next.length > 1) buildSeeds(next)
+           else List.empty[PlaylistSeed])
   }
 }

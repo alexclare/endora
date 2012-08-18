@@ -1,7 +1,7 @@
 import s7.sensation._
 import s7.sensation.playlist._
 import s7.sensation.artist.{Artist, Name}
-import s7.sensation.song.{Search, Song, Title}
+import s7.sensation.song.{Search, Song, Title, Artist => SongArtist}
 
 object Endora extends App {
   val usage = "java-run-stuff [-s artist seed]* [-a artist seed]*\n  The first 5 artists/songs will be used to generate your station!"
@@ -43,9 +43,14 @@ listen = anything else
   while(true) {
     try {
       val (s, fb) = list.next
-      Console.println(s.apply(Title) + " - Artist")
+      Console.println(s.apply(Title) + " - " + s.apply(SongArtist)(Name))
       while (description.size == 0) {
-        reader.read match {
+        val input = reader.read
+        if (input != 'q' && input != '?')
+          Console.println(" - processing...")
+        else
+          Console.println()
+        input match {
           case '+'  => {
             fb(FavoriteSong)
             list.steer(PlaySimilar(5))
@@ -58,8 +63,8 @@ listen = anything else
           }
           case 'n'  => {
             fb(SkipSong);
+            list.steer(PlaySimilar(-1))
             description = "  Skipped"
-            list.steer(PlaySimilar(-1));
           }
           case '\'' => {
             fb(FavoriteArtist)

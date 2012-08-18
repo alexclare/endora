@@ -4,6 +4,7 @@ import s7.sensation.artist.{Artist, Name}
 import s7.sensation.song.{Search, Song, Title, Artist => SongArtist}
 
 object Endora extends App {
+  val evil = true
   val usage = "java-run-stuff [-s artist seed]* [-a artist seed]*\n  The first 5 artists/songs will be used to generate your station!"
 
   val keys = """Key map:
@@ -52,35 +53,62 @@ listen = anything else
           Console.println()
         input match {
           case '+'  => {
-            fb(FavoriteSong)
-            list.steer(PlaySimilar(5))
+            if (evil) {
+              fb(BanSong)
+              list.steer(PlaySimilar(-5))
+            } else {
+              fb(FavoriteSong)
+              list.steer(PlaySimilar(5))
+            }
             description = "  Made a favorite"
           }
           case '-'  => {
-            fb(BanSong)
-            list.steer(PlaySimilar(-5))
+            if (evil) {
+              fb(FavoriteSong)
+              list.steer(PlaySimilar(5))
+            } else {
+              fb(BanSong)
+              list.steer(PlaySimilar(-5))
+            }
             description = "  Banned"
           }
           case 'n'  => {
-            fb(SkipSong);
-            list.steer(PlaySimilar(-1))
+            if (evil) list.steer(PlaySimilar(1));
+            else {
+              fb(SkipSong);
+              list.steer(PlaySimilar(-1))
+            }
             description = "  Skipped"
           }
           case '\'' => {
-            fb(FavoriteArtist)
-            list.steer(PlaySimilar(3));
+            if (evil) {
+              fb(BanArtist)
+              list.steer(PlaySimilar(-3))
+            } else {
+              fb(FavoriteArtist)
+              list.steer(PlaySimilar(3));
+            }
             description = "  Made the artist a favorite"
           }
           case ';'  => {
-            fb(BanArtist)
-            list.steer(PlaySimilar(-3))
+            if (evil) {
+              fb(FavoriteArtist)
+              list.steer(PlaySimilar(3));
+            } else {
+              fb(BanArtist)
+              list.steer(PlaySimilar(-3))
+            }
             description = "  Banned the artist"
           }
           case 'q'  => list.delete; System.exit(0)
           case '?'  => Console.println(keys)
           case _    => {
+            if (evil) {
+              fb(SkipSong);
+              list.steer(PlaySimilar(-1))
+            } else
+              list.steer(PlaySimilar(1));
             description = "  Listened"
-            list.steer(PlaySimilar(1));
           }
         }
       }

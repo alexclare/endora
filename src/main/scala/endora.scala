@@ -1,6 +1,6 @@
 import s7.sensation._
 import s7.sensation.playlist._
-import s7.sensation.artist.{Artist, Name}
+import s7.sensation.artist.{Artist, Name, Terms}
 import s7.sensation.song.{Search, Song, Title, Artist => SongArtist}
 
 object Endora extends App {
@@ -44,7 +44,8 @@ listen = anything else
   while(true) {
     try {
       val (s, fb) = list.next
-      Console.println(s.apply(Title) + " - " + s.apply(SongArtist)(Name))
+      Console.println(s(Title) + " - " + s(SongArtist)(Name) + " - " +
+                      s(SongArtist)(Terms).take(3).map(_._1).mkString(" "))
       while (description.size == 0) {
         val input = reader.read
         if (input != 'q' && input != '?')
@@ -80,23 +81,29 @@ listen = anything else
             }
             description = "  Skipped"
           }
+
+          // Reseed the playlist strongly with styles resembling those of the artist
           case '\'' => {
             if (evil) {
               fb(BanArtist)
-              list.steer(PlaySimilar(-3))
+              list.restart(Song.search(Search.Style(
+                s(SongArtist)(Terms).map(_._1).takeRight(3))))
             } else {
               fb(FavoriteArtist)
-              list.steer(PlaySimilar(3));
+              list.restart(Song.search(Search.Style(
+                s(SongArtist)(Terms).map(_._1).take(3))))
             }
             description = "  Made the artist a favorite"
           }
           case ';'  => {
             if (evil) {
               fb(FavoriteArtist)
-              list.steer(PlaySimilar(3));
+              list.restart(Song.search(Search.Style(
+                s(SongArtist)(Terms).map(_._1).take(3))))
             } else {
               fb(BanArtist)
-              list.steer(PlaySimilar(-3))
+              list.restart(Song.search(Search.Style(
+                s(SongArtist)(Terms).map(_._1).takeRight(3))))
             }
             description = "  Banned the artist"
           }
@@ -126,7 +133,7 @@ listen = anything else
     val (cur, next) = arr.tail.span(cond)
     (arr.head match {
       case "-a" => Artist(Name -> cur.mkString(" "))
-      case _ => Song.search(Search.Title -> cur.mkString(" ")).head
+      case _ => Song.search(Search.Title(cur.mkString(" "))).head
     }) :: (if (next.length > 1) buildSeeds(next)
            else List.empty[PlaylistSeed])
   }

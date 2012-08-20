@@ -18,7 +18,7 @@ After each song, tell `endora` how you like it or
 what you did with it (favorite, ban, skip, or just plain old listen), and endora
 will alter the behavior of your station accordingly.
 
-And to reiterate: this program only hands out recommendations. **Music not included**
+And to reiterate: this program only hands out recommendations. **Music not included.**
 
 LICENSE
 -------
